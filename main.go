@@ -9,7 +9,7 @@ import (
 const (
 	screenWidth  = 1280
 	screenHeight = 720
-	gridSize     = 20
+	gridSize     = 10
 )
 
 func main() {
@@ -18,6 +18,7 @@ func main() {
 
 	game := &Game{
 		gridManager: NewGrid(screenWidth/gridSize, screenHeight/gridSize),
+		score:       0,
 	}
 
 	if err := ebiten.RunGame(game); err != nil {
