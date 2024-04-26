@@ -35,7 +35,7 @@ func (g *Game) Update() error {
 		}
 	} else if g.state == GameOver {
 		if ebiten.IsKeyPressed(ebiten.KeyR) {
-			g.gridManager = NewGrid(screenWidth/gridSize, screenHeight/gridSize)
+			g.gridManager = NewGrid(cellSize)
 			g.score = 0
 			g.state = Playing
 		} else if ebiten.IsKeyPressed(ebiten.KeyEscape) {
@@ -44,7 +44,7 @@ func (g *Game) Update() error {
 	}
 
 	// Mise à jour de l'intervalle en fonction du score
-	g.updateInterval = 3 - g.score/10
+	g.updateInterval = 5 - g.score/10
 	if g.updateInterval < 1 {
 		g.updateInterval = 1
 	}
