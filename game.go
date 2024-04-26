@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
@@ -22,13 +24,15 @@ type Score struct {
 }
 
 type Game struct {
-	gridManager    GridManager
-	scores         []Score
-	score          int
-	state          GameState
-	updateCount    int
-	updateInterval int
-	scoreAdded     bool
+	gridManager       GridManager
+	scores            []Score
+	score             int
+	state             GameState
+	updateCount       int
+	updateInterval    int
+	scoreAdded        bool
+	ui                *ebitenui.UI
+	standardTextInput *widget.TextInput
 }
 
 func (g *Game) Update() error {

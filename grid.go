@@ -135,6 +135,7 @@ func (g *Grid) Update(game *Game) error {
 }
 
 func (g *Grid) Draw(screen *ebiten.Image) {
+
 	screenWidth, screenHeight := screen.Size()
 	gridWidth := int(float64(screenWidth) * 1)
 	gridHeight := int(float64(screenHeight) * 1)
