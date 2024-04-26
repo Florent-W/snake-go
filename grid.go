@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math/rand"
+	"sort"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -45,6 +46,19 @@ func NewGrid(width, height int) *Grid {
 	grid.cells[grid.snake[0].Y][grid.snake[0].X] = true
 	grid.placeFood()
 	return grid
+}
+
+func (g *Game) AddScore(newScore int, newName string) {
+	g.scores = append(g.scores, Score{Value: newScore, Name: newName})
+
+	// Tri du tableau
+	sort.Slice(g.scores, func(i, j int) bool {
+		return g.scores[i].Value > g.scores[j].Value
+	})
+
+	if len(g.scores) > 10 {
+		g.scores = g.scores[:10]
+	}
 }
 
 func (g *Grid) placeFood() {
@@ -102,9 +116,9 @@ func (g *Grid) Update(game *Game) error {
 	}
 
 	// Vérifie les collisions avec lui-même
-	for i, segment := range g.snake[1:] {
+	for _, segment := range g.snake[1:len(g.snake)] {
 		if newHead == segment {
-			return fmt.Errorf("game over: collision avec soi-même à l'index %d", i+1)
+			return fmt.Errorf("game over: collision avec soi-même")
 		}
 	}
 
