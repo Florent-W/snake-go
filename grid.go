@@ -43,6 +43,7 @@ func NewGrid(width, height int) *Grid {
 		grid.cells[i] = make([]bool, width)
 	}
 	grid.cells[grid.snake[0].Y][grid.snake[0].X] = true
+	grid.placeFood()
 	return grid
 }
 
@@ -51,8 +52,11 @@ func (g *Grid) placeFood() {
 		fmt.Println("Erreur de taille de la grille lors du placement de la nourriture")
 		return
 	}
-	foodX := rand.Intn(g.width)
-	foodY := rand.Intn(g.height)
+	// Pour éviter que la nourriture soit placé trop près du bord
+	margin := 1
+
+	foodX := rand.Intn(g.width-2*margin) + margin
+	foodY := rand.Intn(g.height-2*margin) + margin
 	g.food = Position{X: foodX, Y: foodY}
 
 	// Pour éviter que la nourriture soit placé sur le snake

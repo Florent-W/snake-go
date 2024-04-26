@@ -16,26 +16,37 @@ const (
 )
 
 type Game struct {
-	gridManager GridManager
-	score       int
-	state       GameState
+	gridManager    GridManager
+	score          int
+	state          GameState
+	updateCount    int
+	updateInterval int
 }
 
 func (g *Game) Update() error {
 	if g.state == Playing {
-		err := g.gridManager.Update(g)
-		if err != nil {
-			g.state = GameOver
-			return nil
+		g.updateCount++
+		if g.updateCount >= g.updateInterval {
+			err := g.gridManager.Update(g)
+			if err != nil {
+				g.state = GameOver
+			}
+			g.updateCount = 0
 		}
 	} else if g.state == GameOver {
 		if ebiten.IsKeyPressed(ebiten.KeyR) {
 			g.gridManager = NewGrid(screenWidth/gridSize, screenHeight/gridSize)
 			g.score = 0
 			g.state = Playing
-		} else if ebiten.IsKeyPressed(ebiten.KeyQ) {
+		} else if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 			os.Exit(0)
 		}
+	}
+
+	// Mise à jour de l'intervalle en fonction du score
+	g.updateInterval = 3 - g.score/10
+	if g.updateInterval < 1 {
+		g.updateInterval = 1
 	}
 
 	return nil
@@ -48,7 +59,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// Affichage du Game Over
 	if g.state == GameOver {
-		msg := "Game Over! Score: " + strconv.Itoa(g.score) + "\nR pour Recommencer, Q pour quitter"
+		msg := "Game Over! Score: " + strconv.Itoa(g.score) + "\nR pour Recommencer, Echap pour quitter"
 		x := screenWidth/2 - 200
 		y := screenHeight / 2
 		ebitenutil.DebugPrintAt(screen, msg, x, y)

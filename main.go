@@ -17,8 +17,9 @@ func main() {
 	ebiten.SetWindowTitle("Snake Go")
 
 	game := &Game{
-		gridManager: NewGrid(screenWidth/gridSize, screenHeight/gridSize),
-		score:       0,
+		gridManager:    NewGrid(screenWidth/gridSize, screenHeight/gridSize),
+		score:          0,
+		updateInterval: 3,
 	}
 
 	if err := ebiten.RunGame(game); err != nil {
