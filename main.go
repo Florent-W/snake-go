@@ -61,10 +61,15 @@ func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Snake Go")
 
-	fmt.Println("Veuillezz entrer votre nom:")
 	var playerName string
-	fmt.Scanln(&playerName)
-
+	for {
+		fmt.Println("Veuillez entrer votre nom:")
+		fmt.Scanln(&playerName)
+		if len(playerName) > 0 {
+			break
+		}
+		fmt.Println("Le nom doit contenir au moins un caractère. Réessayez.")
+	}
 	game := &Game{
 		gridManager:    NewGrid(cellSize),
 		score:          0,

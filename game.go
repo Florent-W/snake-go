@@ -70,7 +70,7 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.gridManager.Draw(screen)
 	scoreText := "Score: " + strconv.Itoa(g.score)
-	ebitenutil.DebugPrint(screen, scoreText)
+	ebitenutil.DebugPrintAt(screen, scoreText, 10, 10)
 
 	if g.state == GameOver {
 
@@ -96,10 +96,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		// Affichage des meilleurs scores
 		highScoreText := "Meilleurs Scores:\n"
-		for _, s := range g.scores {
-			highScoreText += fmt.Sprintf("%s: %d\n", s.Name, s.Value)
-		}
 		ebitenutil.DebugPrintAt(screen, highScoreText, textX, textY)
+
+		for _, s := range g.scores {
+			textY += 20
+			scoreText := fmt.Sprintf("%s: %d\n", s.Name, s.Value)
+			ebitenutil.DebugPrintAt(screen, scoreText, textX, textY)
+		}
+		textY += 20
+
 		msg := "Game Over! Score: " + strconv.Itoa(g.score) + "\nR pour Recommencer, Echap pour quitter"
 		ebitenutil.DebugPrintAt(screen, msg, textX, textY)
 	}
