@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"os"
 	"strconv"
 
-	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
@@ -24,15 +23,14 @@ type Score struct {
 }
 
 type Game struct {
-	gridManager       GridManager
-	scores            []Score
-	score             int
-	state             GameState
-	updateCount       int
-	updateInterval    int
-	scoreAdded        bool
-	ui                *ebitenui.UI
-	standardTextInput *widget.TextInput
+	gridManager    GridManager
+	scores         []Score
+	score          int
+	state          GameState
+	updateCount    int
+	updateInterval int
+	scoreAdded     bool
+	playerName     string
 }
 
 func (g *Game) Update() error {
@@ -48,7 +46,7 @@ func (g *Game) Update() error {
 		}
 	} else if g.state == GameOver {
 		if !g.scoreAdded {
-			g.AddScore(g.score, "Test")
+			g.AddScore(g.score, g.playerName)
 			g.scoreAdded = true
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyR) {
@@ -61,7 +59,6 @@ func (g *Game) Update() error {
 		}
 	}
 
-	// Mise à jour de l'intervalle en fonction du score
 	g.updateInterval = 5 - g.score/10
 	if g.updateInterval < 1 {
 		g.updateInterval = 1
@@ -76,19 +73,35 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, scoreText)
 
 	if g.state == GameOver {
-		numberOfScoresText := fmt.Sprintf("Nombre de scores total: %d", len(g.scores))
-		ebitenutil.DebugPrintAt(screen, numberOfScoresText, screenWidth/2-100, screenHeight/2-150)
 
+		gridX := (screenWidth - gridWidth) / 2
+		gridY := (screenHeight - gridHeight) / 2
+
+		// Image de fond
+		gameOverBackground := ebiten.NewImage(gridWidth, gridHeight)
+		gameOverBackground.Fill(color.RGBA{51, 79, 255, 255}) // Couleur bleue
+
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(gridX), float64(gridY))
+		screen.DrawImage(gameOverBackground, op)
+
+		textX := gridX + 20
+		textY := gridY + 20
+
+		// Affichage du texte de score total
+		numberOfScoresText := fmt.Sprintf("Nombre de scores total: %d", len(g.scores))
+		ebitenutil.DebugPrintAt(screen, numberOfScoresText, textX, textY)
+
+		textY += 20
+
+		// Affichage des meilleurs scores
 		highScoreText := "Meilleurs Scores:\n"
 		for _, s := range g.scores {
 			highScoreText += fmt.Sprintf("%s: %d\n", s.Name, s.Value)
 		}
-		ebitenutil.DebugPrintAt(screen, highScoreText, screenWidth/2-100, screenHeight/2-100)
-
+		ebitenutil.DebugPrintAt(screen, highScoreText, textX, textY)
 		msg := "Game Over! Score: " + strconv.Itoa(g.score) + "\nR pour Recommencer, Echap pour quitter"
-		x := screenWidth/2 - 200
-		y := screenHeight/2 + 100
-		ebitenutil.DebugPrintAt(screen, msg, x, y)
+		ebitenutil.DebugPrintAt(screen, msg, textX, textY)
 	}
 }
 

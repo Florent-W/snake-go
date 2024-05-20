@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -18,12 +19,12 @@ var (
 )
 
 const (
-    screenWidth  = 1280
-    screenHeight = 720
-    gridWidth    = 500  // Taille en pixels de la largeur de la grille
-    gridHeight   = 500  // Taille en pixels de la hauteur de la grille
-    cellSize     = 15   // Taille en pixels de chaque cellule de la grille
-    borderThickness = 5 // Épaisseur de la bordure autour de la grille
+	screenWidth     = 1280
+	screenHeight    = 720
+	gridWidth       = 500
+	gridHeight      = 500
+	cellSize        = 15
+	borderThickness = 5
 )
 
 func initAudio() {
@@ -36,10 +37,10 @@ func initAudio() {
 
 func loadAudioPlayer(ctx *audio.Context, filename string) *audio.Player {
 	file, err := os.Open(filename)
-    if err != nil {
-        log.Printf("failed to open audio file: %v", err)
-        return nil
-    }
+	if err != nil {
+		log.Printf("failed to open audio file: %v", err)
+		return nil
+	}
 
 	d, err := mp3.DecodeWithSampleRate(sampleRate, file)
 	if err != nil {
@@ -60,8 +61,12 @@ func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Snake Go")
 
+	fmt.Println("Veuillezz entrer votre nom:")
+	var playerName string
+	fmt.Scanln(&playerName)
+
 	game := &Game{
-		gridManager:    NewGrid(cellSize), // Utilisez cellSize ici pour la création de la grille
+		gridManager:    NewGrid(cellSize),
 		score:          0,
 		updateInterval: 3,
 		scores: []Score{
@@ -69,6 +74,7 @@ func main() {
 			{Value: 23, Name: "Joueur2"},
 			{Value: 12, Name: "Joueur3"},
 		},
+		playerName: playerName,
 	}
 
 	if err := ebiten.RunGame(game); err != nil {
