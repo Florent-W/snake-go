@@ -1,44 +1,66 @@
 package main
 
 import (
-	"fmt"
+	"image"
+	_ "image/png"
 	"log"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 const sampleRate = 44100
 
 var (
-	moveSoundPlayer *audio.Player
-	eatSoundPlayer  *audio.Player
-	loseSoundPlayer *audio.Player
+	moveSoundPlayer   *audio.Player
+	eatSoundPlayer    *audio.Player
+	loseSoundPlayer   *audio.Player
+	backgroundContext *audio.Context
+	backgroundPlayer  *audio.Player
 )
 
 const (
-	screenWidth     = 1280
-	screenHeight    = 720
-	gridWidth       = 500
-	gridHeight      = 500
-	cellSize        = 15
-	borderThickness = 5
+	screenWidth      = 1280
+	screenHeight     = 720
+	gridWidth        = 500
+	gridHeight       = 500
+	cellSize         = 15
+	borderThickness  = 5
+	moveVolume       = 0.8
+	eatVolume        = 0.8
+	loseVolume       = 0.8
+	backgroundVolume = 0.3
 )
 
 func initAudio() {
-	var audioContext = audio.NewContext(sampleRate)
+	backgroundContext = audio.NewContext(sampleRate)
 
-	moveSoundPlayer = loadAudioPlayer(audioContext, "./assets/move.mp3")
-	eatSoundPlayer = loadAudioPlayer(audioContext, "./assets/eating.mp3")
-	loseSoundPlayer = loadAudioPlayer(audioContext, "./assets/lose.mp3")
+	moveSoundPlayer = loadAudioPlayer(backgroundContext, "./assets/move.mp3")
+	eatSoundPlayer = loadAudioPlayer(backgroundContext, "./assets/eating.mp3")
+	loseSoundPlayer = loadAudioPlayer(backgroundContext, "./assets/lose.mp3")
+	backgroundPlayer = loadAudioPlayer(backgroundContext, "./assets/HeatleyBros - HeatleyBros II - 06 8 Bit Adventure.mp3")
+
+	if moveSoundPlayer != nil {
+		moveSoundPlayer.SetVolume(moveVolume)
+	}
+	if eatSoundPlayer != nil {
+		eatSoundPlayer.SetVolume(eatVolume)
+	}
+	if loseSoundPlayer != nil {
+		loseSoundPlayer.SetVolume(loseVolume)
+	}
+	if backgroundPlayer != nil {
+		backgroundPlayer.SetVolume(backgroundVolume)
+	}
 }
 
 func loadAudioPlayer(ctx *audio.Context, filename string) *audio.Player {
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Printf("failed to open audio file: %v", err)
+		log.Printf("Impossible de lire le fichier audio: %v", err)
 		return nil
 	}
 
@@ -55,21 +77,24 @@ func loadAudioPlayer(ctx *audio.Context, filename string) *audio.Player {
 	return p
 }
 
-func main() {
-	initAudio()
+func loadIcon() image.Image {
+	icon, _, err := ebitenutil.NewImageFromFile("assets/icone.png")
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	return icon
+}
+
+func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Snake Go")
 
-	var playerName string
-	for {
-		fmt.Println("Veuillez entrer votre nom:")
-		fmt.Scanln(&playerName)
-		if len(playerName) > 0 {
-			break
-		}
-		fmt.Println("Le nom doit contenir au moins un caractère. Réessayez.")
-	}
+	icon := loadIcon()
+	ebiten.SetWindowIcon([]image.Image{icon})
+
+	initAudio()
+
 	game := &Game{
 		gridManager:    NewGrid(cellSize),
 		score:          0,
@@ -79,7 +104,8 @@ func main() {
 			{Value: 23, Name: "Joueur2"},
 			{Value: 12, Name: "Joueur3"},
 		},
-		playerName: playerName,
+		state:      Menu,
+		playerName: "",
 	}
 
 	if err := ebiten.RunGame(game); err != nil {
