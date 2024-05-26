@@ -23,12 +23,16 @@ var (
 )
 
 const (
-	screenWidth     = 1280
-	screenHeight    = 720
-	gridWidth       = 500
-	gridHeight      = 500
-	cellSize        = 15
-	borderThickness = 5
+	screenWidth      = 1280
+	screenHeight     = 720
+	gridWidth        = 500
+	gridHeight       = 500
+	cellSize         = 15
+	borderThickness  = 5
+	moveVolume       = 0.8
+	eatVolume        = 0.8
+	loseVolume       = 0.8
+	backgroundVolume = 0.3
 )
 
 func initAudio() {
@@ -38,6 +42,19 @@ func initAudio() {
 	eatSoundPlayer = loadAudioPlayer(backgroundContext, "./assets/eating.mp3")
 	loseSoundPlayer = loadAudioPlayer(backgroundContext, "./assets/lose.mp3")
 	backgroundPlayer = loadAudioPlayer(backgroundContext, "./assets/HeatleyBros - HeatleyBros II - 06 8 Bit Adventure.mp3")
+
+	if moveSoundPlayer != nil {
+		moveSoundPlayer.SetVolume(moveVolume)
+	}
+	if eatSoundPlayer != nil {
+		eatSoundPlayer.SetVolume(eatVolume)
+	}
+	if loseSoundPlayer != nil {
+		loseSoundPlayer.SetVolume(loseVolume)
+	}
+	if backgroundPlayer != nil {
+		backgroundPlayer.SetVolume(backgroundVolume)
+	}
 }
 
 func loadAudioPlayer(ctx *audio.Context, filename string) *audio.Player {
