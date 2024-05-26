@@ -45,6 +45,7 @@ var (
 	lastEnterPress   time.Time
 	backgroundImage  *ebiten.Image
 	heartImage       *ebiten.Image
+	snakeSprite      *ebiten.Image
 )
 
 type Score struct {
@@ -78,6 +79,12 @@ func init() {
 		log.Fatal(err)
 	}
 	heartImage = heartImg
+
+	snakeImg, _, err := ebitenutil.NewImageFromFile("assets/snake-sprite.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	snakeSprite = snakeImg
 }
 
 func (g *Game) Update() error {

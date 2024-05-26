@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"math/rand"
 	"time"
@@ -204,38 +205,184 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	gridX := (constants.ScreenWidth - constants.GridWidth) / 2
 	gridY := (constants.ScreenHeight - constants.GridHeight) / 2
 
-	borderColor := color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	borderColor := color.RGBA{R: 140, G: 130, B: 81, A: 255}
 	borderImage := ebiten.NewImage(constants.GridWidth+2*constants.BorderThickness, constants.GridHeight+2*constants.BorderThickness)
 	borderImage.Fill(borderColor)
 	borderOpts := &ebiten.DrawImageOptions{}
 	borderOpts.GeoM.Translate(float64(gridX-constants.BorderThickness), float64(gridY-constants.BorderThickness))
 	screen.DrawImage(borderImage, borderOpts)
 
+	backgroundColor := color.RGBA{R: 238, G: 242, B: 121, A: 255}
 	gameArea := ebiten.NewImage(constants.GridWidth, constants.GridHeight)
-	gameArea.Fill(color.Black)
+	gameArea.Fill(backgroundColor)
 	gameAreaOpts := &ebiten.DrawImageOptions{}
 	gameAreaOpts.GeoM.Translate(float64(gridX), float64(gridY))
 	screen.DrawImage(gameArea, gameAreaOpts)
 
-	for _, pos := range g.snake {
-		snakePart := ebiten.NewImage(constants.CellSize, constants.CellSize)
-		snakePart.Fill(color.RGBA{R: 0, G: 255, B: 0, A: 255})
+	for i, pos := range g.snake {
+		var segmentType string
+		var direction Direction
+		var nextDirection Direction
+
+		if i == 0 {
+			segmentType = "head"
+			direction = g.direction
+			if len(g.snake) > 1 {
+				nextPos := g.snake[i+1]
+				if pos.X < nextPos.X {
+					nextDirection = Left
+				} else if pos.X > nextPos.X {
+					nextDirection = Right
+				} else if pos.Y < nextPos.Y {
+					nextDirection = Up
+				} else {
+					nextDirection = Down
+				}
+			}
+		} else if i == len(g.snake)-1 {
+			segmentType = "tail"
+			prevPos := g.snake[i-1]
+			if pos.X < prevPos.X {
+				direction = Left
+			} else if pos.X > prevPos.X {
+				direction = Right
+			} else if pos.Y < prevPos.Y {
+				direction = Up
+			} else {
+				direction = Down
+			}
+		} else {
+			segmentType = "body"
+			prevPos := g.snake[i-1]
+			if pos.X < prevPos.X {
+				direction = Left
+			} else if pos.X > prevPos.X {
+				direction = Right
+			} else if pos.Y < prevPos.Y {
+				direction = Up
+			} else {
+				direction = Down
+			}
+
+			nextPos := g.snake[i+1]
+			if pos.X < nextPos.X {
+				nextDirection = Left
+			} else if pos.X > nextPos.X {
+				nextDirection = Right
+			} else if pos.Y < nextPos.Y {
+				nextDirection = Up
+			} else {
+				nextDirection = Down
+			}
+		}
+
+		snakePart := getSpriteSegment(segmentType, direction, nextDirection)
 		opts := &ebiten.DrawImageOptions{}
+		opts.GeoM.Scale(float64(constants.CellSize)/64, float64(constants.CellSize)/64)
 		opts.GeoM.Translate(float64(gridX+pos.X*constants.CellSize), float64(gridY+pos.Y*constants.CellSize))
 		screen.DrawImage(snakePart, opts)
 	}
 
-	foodPart := ebiten.NewImage(constants.CellSize, constants.CellSize)
-	foodPart.Fill(color.RGBA{R: 255, G: 0, B: 0, A: 255})
-	foodOpts := &ebiten.DrawImageOptions{}
-	foodOpts.GeoM.Translate(float64(gridX+g.food.X*constants.CellSize), float64(gridY+g.food.Y*constants.CellSize))
-	screen.DrawImage(foodPart, foodOpts)
+	// Dessiner la pomme
+	appleSprite := getAppleSprite()
+	appleOpts := &ebiten.DrawImageOptions{}
+	appleOpts.GeoM.Scale(float64(constants.CellSize)/64, float64(constants.CellSize)/64)
+	appleOpts.GeoM.Translate(float64(gridX+g.food.X*constants.CellSize), float64(gridY+g.food.Y*constants.CellSize))
+	screen.DrawImage(appleSprite, appleOpts)
 
+	// Dessiner les obstacles
+	obstacleSprite := getObstacleSprite()
 	for _, pos := range g.obstacles {
-		obstaclePart := ebiten.NewImage(constants.CellSize, constants.CellSize)
-		obstaclePart.Fill(color.RGBA{R: 128, G: 128, B: 128, A: 255})
 		opts := &ebiten.DrawImageOptions{}
+		opts.GeoM.Scale(float64(constants.CellSize)/64, float64(constants.CellSize)/64)
 		opts.GeoM.Translate(float64(gridX+pos.X*constants.CellSize), float64(gridY+pos.Y*constants.CellSize))
-		screen.DrawImage(obstaclePart, opts)
+		screen.DrawImage(obstacleSprite, opts)
 	}
+}
+
+func getSpriteSegment(segmentType string, direction Direction, nextDirection Direction) *ebiten.Image {
+	// Les coordonnées des segments de l'image sprite (colonne, ligne)
+	segments := map[string]image.Point{
+		"head_up":    {3, 0},
+		"head_down":  {4, 1},
+		"head_left":  {3, 1},
+		"head_right": {4, 0},
+		"tail_up":    {4, 3},
+		"tail_down":  {3, 2},
+		"tail_left":  {4, 2},
+		"tail_right": {3, 3},
+		"body_v":     {2, 1},
+		"body_h":     {1, 0},
+		"turn_ur":    {0, 1},
+		"turn_ul":    {2, 2},
+		"turn_dr":    {0, 0},
+		"turn_dl":    {2, 0},
+	}
+
+	var segmentKey string
+
+	switch segmentType {
+	case "head":
+		switch direction {
+		case Up:
+			segmentKey = "head_up"
+		case Down:
+			segmentKey = "head_down"
+		case Left:
+			segmentKey = "head_left"
+		case Right:
+			segmentKey = "head_right"
+		}
+	case "tail":
+		switch direction {
+		case Up:
+			segmentKey = "tail_up"
+		case Down:
+			segmentKey = "tail_down"
+		case Left:
+			segmentKey = "tail_left"
+		case Right:
+			segmentKey = "tail_right"
+		}
+	case "body":
+		if direction == Up || direction == Down {
+			segmentKey = "body_v"
+		} else {
+			segmentKey = "body_h"
+		}
+
+		switch {
+		case direction == Up && nextDirection == Right:
+			segmentKey = "turn_dl"
+		case direction == Up && nextDirection == Left:
+			segmentKey = "turn_dr"
+		case direction == Down && nextDirection == Right:
+			segmentKey = "turn_ul"
+		case direction == Down && nextDirection == Left:
+			segmentKey = "turn_ur"
+		case direction == Left && nextDirection == Up:
+			segmentKey = "turn_dr"
+		case direction == Left && nextDirection == Down:
+			segmentKey = "turn_ur"
+		case direction == Right && nextDirection == Up:
+			segmentKey = "turn_dl"
+		case direction == Right && nextDirection == Down:
+			segmentKey = "turn_ul"
+		}
+	}
+
+	segmentCoords := segments[segmentKey]
+	return snakeSprite.SubImage(image.Rect(segmentCoords.X*64, segmentCoords.Y*64, (segmentCoords.X+1)*64, (segmentCoords.Y+1)*64)).(*ebiten.Image)
+}
+
+func getAppleSprite() *ebiten.Image {
+	appleCoords := image.Point{X: 0, Y: 3}
+	appleSprite := snakeSprite.SubImage(image.Rect(appleCoords.X*64, appleCoords.Y*64, (appleCoords.X+1)*64, (appleCoords.Y+1)*64)).(*ebiten.Image)
+	return appleSprite
+}
+
+func getObstacleSprite() *ebiten.Image {
+	obstacleCoords := image.Point{X: 1, Y: 3}
+	obstacleSprite := snakeSprite.SubImage(image.Rect(obstacleCoords.X*64, obstacleCoords.Y*64, (obstacleCoords.X+1)*64, (obstacleCoords.Y+1)*64)).(*ebiten.Image)
+	return obstacleSprite
 }

@@ -65,15 +65,16 @@ func RenderGameOver(screen *ebiten.Image, score int, scores []Score) {
 	gridX := (constants.ScreenWidth - constants.GridWidth) / 2
 	gridY := (constants.ScreenHeight - constants.GridHeight) / 2
 
-	borderColor := color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	borderColor := color.RGBA{R: 113, G: 105, B: 66, A: 255}
 	borderImage := ebiten.NewImage(constants.GridWidth+2*constants.BorderThickness, constants.GridHeight+2*constants.BorderThickness)
 	borderImage.Fill(borderColor)
 	borderOpts := &ebiten.DrawImageOptions{}
 	borderOpts.GeoM.Translate(float64(gridX-constants.BorderThickness), float64(gridY-constants.BorderThickness))
 	screen.DrawImage(borderImage, borderOpts)
 
+	backgroundColor := color.RGBA{R: 140, G: 130, B: 81, A: 255}
 	gameArea := ebiten.NewImage(constants.GridWidth, constants.GridHeight)
-	gameArea.Fill(color.Black)
+	gameArea.Fill(backgroundColor)
 	gameAreaOpts := &ebiten.DrawImageOptions{}
 	gameAreaOpts.GeoM.Translate(float64(gridX), float64(gridY))
 	screen.DrawImage(gameArea, gameAreaOpts)
