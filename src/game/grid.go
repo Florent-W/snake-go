@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"fmt"
@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+
+	"snake-go/src/audio"
+	"snake-go/src/constants"
 )
 
 type Direction int
@@ -33,8 +36,8 @@ type Grid struct {
 }
 
 func NewGrid(cellSize int) *Grid {
-	width := gridWidth / cellSize
-	height := gridHeight / cellSize
+	width := constants.GridWidth / cellSize
+	height := constants.GridHeight / cellSize
 
 	rand.Seed(time.Now().UnixNano())
 	initialDirection := Right
@@ -56,8 +59,8 @@ func NewGrid(cellSize int) *Grid {
 }
 
 func NewGridWithObstacles(cellSize int, difficulty Difficulty) *Grid {
-	width := gridWidth / cellSize
-	height := gridHeight / cellSize
+	width := constants.GridWidth / cellSize
+	height := constants.GridHeight / cellSize
 
 	rand.Seed(time.Now().UnixNano())
 	initialDirection := Right
@@ -104,11 +107,11 @@ func (g *Grid) placeFood() {
 func (g *Grid) placeObstacles(difficulty Difficulty) {
 	var obstacleCount int
 	switch difficulty {
-	case Easy:
+	case Facile:
 		obstacleCount = 2
-	case Medium:
+	case Normal:
 		obstacleCount = 3
-	case Hard:
+	case Difficile:
 		obstacleCount = 5
 	}
 
@@ -146,8 +149,8 @@ func (g *Grid) Update(game *Game) error {
 
 	if g.nextDirection != g.direction {
 		g.direction = g.nextDirection
-		moveSoundPlayer.Rewind()
-		moveSoundPlayer.Play()
+		audio.MoveSoundPlayer.Rewind()
+		audio.MoveSoundPlayer.Play()
 	}
 	head := g.snake[0]
 	newHead := head
@@ -163,31 +166,31 @@ func (g *Grid) Update(game *Game) error {
 	}
 
 	if newHead.X < 0 || newHead.X >= g.width || newHead.Y < 0 || newHead.Y >= g.height {
-		loseSoundPlayer.Rewind()
-		loseSoundPlayer.Play()
+		audio.LoseSoundPlayer.Rewind()
+		audio.LoseSoundPlayer.Play()
 		return fmt.Errorf("game over: collision avec un mur")
 	}
 
 	for _, segment := range g.snake[1:] {
 		if newHead == segment {
-			loseSoundPlayer.Rewind()
-			loseSoundPlayer.Play()
+			audio.LoseSoundPlayer.Rewind()
+			audio.LoseSoundPlayer.Play()
 			return fmt.Errorf("game over: collision avec soi-même")
 		}
 	}
 
 	for _, obstacle := range g.obstacles {
 		if newHead == obstacle {
-			loseSoundPlayer.Rewind()
-			loseSoundPlayer.Play()
+			audio.LoseSoundPlayer.Rewind()
+			audio.LoseSoundPlayer.Play()
 			return fmt.Errorf("game over: collision avec un obstacle")
 		}
 	}
 
 	if newHead == g.food {
-		game.score++
-		eatSoundPlayer.Rewind()
-		eatSoundPlayer.Play()
+		game.Score++
+		audio.EatSoundPlayer.Rewind()
+		audio.EatSoundPlayer.Play()
 		g.snake = append([]Position{newHead}, g.snake...)
 		g.placeFood()
 	} else {
@@ -198,41 +201,41 @@ func (g *Grid) Update(game *Game) error {
 }
 
 func (g *Grid) Draw(screen *ebiten.Image) {
-	gridX := (screenWidth - gridWidth) / 2
-	gridY := (screenHeight - gridHeight) / 2
+	gridX := (constants.ScreenWidth - constants.GridWidth) / 2
+	gridY := (constants.ScreenHeight - constants.GridHeight) / 2
 
 	borderColor := color.RGBA{R: 255, G: 255, B: 255, A: 255}
-	borderImage := ebiten.NewImage(gridWidth+2*borderThickness, gridHeight+2*borderThickness)
+	borderImage := ebiten.NewImage(constants.GridWidth+2*constants.BorderThickness, constants.GridHeight+2*constants.BorderThickness)
 	borderImage.Fill(borderColor)
 	borderOpts := &ebiten.DrawImageOptions{}
-	borderOpts.GeoM.Translate(float64(gridX-borderThickness), float64(gridY-borderThickness))
+	borderOpts.GeoM.Translate(float64(gridX-constants.BorderThickness), float64(gridY-constants.BorderThickness))
 	screen.DrawImage(borderImage, borderOpts)
 
-	gameArea := ebiten.NewImage(gridWidth, gridHeight)
+	gameArea := ebiten.NewImage(constants.GridWidth, constants.GridHeight)
 	gameArea.Fill(color.Black)
 	gameAreaOpts := &ebiten.DrawImageOptions{}
 	gameAreaOpts.GeoM.Translate(float64(gridX), float64(gridY))
 	screen.DrawImage(gameArea, gameAreaOpts)
 
 	for _, pos := range g.snake {
-		snakePart := ebiten.NewImage(cellSize, cellSize)
+		snakePart := ebiten.NewImage(constants.CellSize, constants.CellSize)
 		snakePart.Fill(color.RGBA{R: 0, G: 255, B: 0, A: 255})
 		opts := &ebiten.DrawImageOptions{}
-		opts.GeoM.Translate(float64(gridX+pos.X*cellSize), float64(gridY+pos.Y*cellSize))
+		opts.GeoM.Translate(float64(gridX+pos.X*constants.CellSize), float64(gridY+pos.Y*constants.CellSize))
 		screen.DrawImage(snakePart, opts)
 	}
 
-	foodPart := ebiten.NewImage(cellSize, cellSize)
+	foodPart := ebiten.NewImage(constants.CellSize, constants.CellSize)
 	foodPart.Fill(color.RGBA{R: 255, G: 0, B: 0, A: 255})
 	foodOpts := &ebiten.DrawImageOptions{}
-	foodOpts.GeoM.Translate(float64(gridX+g.food.X*cellSize), float64(gridY+g.food.Y*cellSize))
+	foodOpts.GeoM.Translate(float64(gridX+g.food.X*constants.CellSize), float64(gridY+g.food.Y*constants.CellSize))
 	screen.DrawImage(foodPart, foodOpts)
 
 	for _, pos := range g.obstacles {
-		obstaclePart := ebiten.NewImage(cellSize, cellSize)
+		obstaclePart := ebiten.NewImage(constants.CellSize, constants.CellSize)
 		obstaclePart.Fill(color.RGBA{R: 128, G: 128, B: 128, A: 255})
 		opts := &ebiten.DrawImageOptions{}
-		opts.GeoM.Translate(float64(gridX+pos.X*cellSize), float64(gridY+pos.Y*cellSize))
+		opts.GeoM.Translate(float64(gridX+pos.X*constants.CellSize), float64(gridY+pos.Y*constants.CellSize))
 		screen.DrawImage(obstaclePart, opts)
 	}
 }
