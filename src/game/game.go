@@ -2,18 +2,17 @@ package game
 
 import (
 	"image/color"
-	"log"
 	"sort"
 	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font/basicfont"
 
 	"snake-go/src/audio"
 	"snake-go/src/constants"
+	"snake-go/src/resources"
 	"snake-go/src/ui"
 )
 
@@ -43,9 +42,6 @@ const (
 var (
 	currentSelection Difficulty
 	lastEnterPress   time.Time
-	backgroundImage  *ebiten.Image
-	heartImage       *ebiten.Image
-	snakeSprite      *ebiten.Image
 )
 
 type Score struct {
@@ -67,27 +63,6 @@ type Game struct {
 	Mode              string
 	Lives             int
 	LastSpeedIncrease int
-}
-
-// Initialisation des images nécessaires
-func init() {
-	img, _, err := ebitenutil.NewImageFromFile("assets/menu_background.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	backgroundImage = img
-
-	heartImg, _, err := ebitenutil.NewImageFromFile("assets/coeur.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	heartImage = heartImg
-
-	snakeImg, _, err := ebitenutil.NewImageFromFile("assets/snake-sprite.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	snakeSprite = snakeImg
 }
 
 // Fonction principale de mise à jour du jeu, appel les méthodes selon l'état du jeu
@@ -221,10 +196,10 @@ func (g *Game) AddScore(newScore int, newName string) {
 
 // Dessin des éléments à l'écran selon l'état du jeu
 func (g *Game) Draw(screen *ebiten.Image) {
-	if backgroundImage != nil {
+	if resources.BackgroundImage != nil {
 		opts := &ebiten.DrawImageOptions{}
-		opts.GeoM.Scale(float64(constants.ScreenWidth)/float64(backgroundImage.Bounds().Dx()), float64(constants.ScreenHeight)/float64(backgroundImage.Bounds().Dy()))
-		screen.DrawImage(backgroundImage, opts)
+		opts.GeoM.Scale(float64(constants.ScreenWidth)/float64(resources.BackgroundImage.Bounds().Dx()), float64(constants.ScreenHeight)/float64(resources.BackgroundImage.Bounds().Dy()))
+		screen.DrawImage(resources.BackgroundImage, opts)
 	}
 
 	switch g.State {
@@ -253,7 +228,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 // Dessin des vies restantes à l'écran
 func (g *Game) drawLives(screen *ebiten.Image) {
-	if heartImage == nil {
+	if resources.HeartImage == nil {
 		return
 	}
 
@@ -265,8 +240,8 @@ func (g *Game) drawLives(screen *ebiten.Image) {
 		opts := &ebiten.DrawImageOptions{}
 		scale := 0.02
 		opts.GeoM.Scale(scale, scale)
-		opts.GeoM.Translate(float64(55+i*int(float64(heartImage.Bounds().Dx())*scale)), 40)
-		screen.DrawImage(heartImage, opts)
+		opts.GeoM.Translate(float64(55+i*int(float64(resources.HeartImage.Bounds().Dx())*scale)), 40)
+		screen.DrawImage(resources.HeartImage, opts)
 	}
 }
 

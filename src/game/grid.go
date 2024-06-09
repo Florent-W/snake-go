@@ -11,6 +11,7 @@ import (
 
 	"snake-go/src/audio"
 	"snake-go/src/constants"
+	"snake-go/src/resources"
 )
 
 // Directions du snake
@@ -404,19 +405,19 @@ func getSpriteSegment(segmentType string, direction Direction, nextDirection Dir
 	}
 
 	segmentCoords := segments[segmentKey]
-	return snakeSprite.SubImage(image.Rect(segmentCoords.X*64, segmentCoords.Y*64, (segmentCoords.X+1)*64, (segmentCoords.Y+1)*64)).(*ebiten.Image)
+	return resources.SnakeSprite.SubImage(image.Rect(segmentCoords.X*64, segmentCoords.Y*64, (segmentCoords.X+1)*64, (segmentCoords.Y+1)*64)).(*ebiten.Image)
 }
 
 // récupère l'image du sprite de la pomme
 func getAppleSprite() *ebiten.Image {
 	appleCoords := image.Point{X: 0, Y: 3}
-	appleSprite := snakeSprite.SubImage(image.Rect(appleCoords.X*64, appleCoords.Y*64, (appleCoords.X+1)*64, (appleCoords.Y+1)*64)).(*ebiten.Image)
+	appleSprite := resources.SnakeSprite.SubImage(image.Rect(appleCoords.X*64, appleCoords.Y*64, (appleCoords.X+1)*64, (appleCoords.Y+1)*64)).(*ebiten.Image)
 	return appleSprite
 }
 
 // getObstacleSprite récupère l'image du sprite des obstacles
 func getObstacleSprite() *ebiten.Image {
 	obstacleCoords := image.Point{X: 1, Y: 3}
-	obstacleSprite := snakeSprite.SubImage(image.Rect(obstacleCoords.X*64, obstacleCoords.Y*64, (obstacleCoords.X+1)*64, (obstacleCoords.Y+1)*64)).(*ebiten.Image)
+	obstacleSprite := resources.SnakeSprite.SubImage(image.Rect(obstacleCoords.X*64, obstacleCoords.Y*64, (obstacleCoords.X+1)*64, (obstacleCoords.Y+1)*64)).(*ebiten.Image)
 	return obstacleSprite
 }
