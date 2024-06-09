@@ -167,6 +167,10 @@ func (g *Grid) Update(game *Game) error {
 		g.nextDirection = Right
 	}
 
+	if len(g.snake) == 1 {
+		g.snake = append(g.snake, g.snake[0])
+	}
+
 	if g.nextDirection != g.direction {
 		g.direction = g.nextDirection
 		audio.MoveSoundPlayer.Rewind()
@@ -227,15 +231,14 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	gridX := (constants.ScreenWidth - constants.GridWidth) / 2
 	gridY := (constants.ScreenHeight - constants.GridHeight) / 2
 
-	borderColor := color.RGBA{R: 140, G: 130, B: 81, A: 255}
+	borderColor := color.RGBA{R: 193, G: 186, B: 131, A: 255}
 	borderImage := ebiten.NewImage(constants.GridWidth+2*constants.BorderThickness, constants.GridHeight+2*constants.BorderThickness)
 	borderImage.Fill(borderColor)
 	borderOpts := &ebiten.DrawImageOptions{}
 	borderOpts.GeoM.Translate(float64(gridX-constants.BorderThickness), float64(gridY-constants.BorderThickness))
 	screen.DrawImage(borderImage, borderOpts)
 
-	// aire de jeu
-	backgroundColor := color.RGBA{R: 238, G: 242, B: 121, A: 255}
+	backgroundColor := color.RGBA{R: 255, G: 254, B: 208, A: 255}
 	gameArea := ebiten.NewImage(constants.GridWidth, constants.GridHeight)
 	gameArea.Fill(backgroundColor)
 	gameAreaOpts := &ebiten.DrawImageOptions{}
