@@ -11,6 +11,7 @@ import (
 	"snake-go/src/constants"
 )
 
+// Dessine le menu principal
 func RenderMenu(screen *ebiten.Image) {
 	textColor := color.RGBA{0, 0, 0, 255}
 	fontFace := basicfont.Face7x13
@@ -21,6 +22,9 @@ func RenderMenu(screen *ebiten.Image) {
 	text.Draw(screen, "3. Quitter", fontFace, constants.ScreenWidth/2-50, constants.ScreenHeight/2+50, textColor)
 }
 
+// Dessine l'écran de saisie du nom du joueur
+//
+// playerName: le nom actuellement saisi par le joueur
 func RenderNameInput(screen *ebiten.Image, playerName string) {
 	textColor := color.RGBA{0, 0, 0, 255}
 	fontFace := basicfont.Face7x13
@@ -29,6 +33,7 @@ func RenderNameInput(screen *ebiten.Image, playerName string) {
 	text.Draw(screen, msg, fontFace, constants.ScreenWidth/2-100, constants.ScreenHeight/2, textColor)
 }
 
+// Dessine l'écran de sélection du mode de jeu
 func RenderModeSelection(screen *ebiten.Image) {
 	textColor := color.RGBA{0, 0, 0, 255}
 	fontFace := basicfont.Face7x13
@@ -38,6 +43,10 @@ func RenderModeSelection(screen *ebiten.Image) {
 	text.Draw(screen, "2. Mode Challenge", fontFace, constants.ScreenWidth/2-50, constants.ScreenHeight/2+50, textColor)
 }
 
+// Dessine l'écran de sélection de la difficulté
+//
+// currentSelection: la difficulté actuellement sélectionnée
+// scores: la liste des meilleurs scores à afficher
 func RenderDifficultySelection(screen *ebiten.Image, currentSelection int, scores []Score) {
 	textColor := color.RGBA{0, 0, 0, 255}
 	fontFace := basicfont.Face7x13
@@ -61,6 +70,10 @@ func RenderDifficultySelection(screen *ebiten.Image, currentSelection int, score
 	}
 }
 
+// Dessine l'écran de fin de partie avec le score final et les meilleurs scores
+//
+// score: le score final
+// scores: la liste des meilleurs scores
 func RenderGameOver(screen *ebiten.Image, score int, scores []Score) {
 	gridX := (constants.ScreenWidth - constants.GridWidth) / 2
 	gridY := (constants.ScreenHeight - constants.GridHeight) / 2
@@ -91,6 +104,7 @@ func RenderGameOver(screen *ebiten.Image, score int, scores []Score) {
 	}
 }
 
+// Dessine l'écran des crédits
 func RenderCredits(screen *ebiten.Image) {
 	textColor := color.RGBA{0, 0, 0, 255}
 	fontFace := basicfont.Face7x13

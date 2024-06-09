@@ -13,6 +13,7 @@ import (
 	"snake-go/src/constants"
 )
 
+// Directions du snake
 type Direction int
 
 const (
@@ -26,6 +27,7 @@ type Position struct {
 	X, Y int
 }
 
+// Grid représente la grille du jeu, contenant le snake, la nourriture, les obstacles...
 type Grid struct {
 	cells         [][]bool
 	snake         []Position
@@ -36,6 +38,10 @@ type Grid struct {
 	width, height int
 }
 
+// NewGrid initialise une nouvelle grille sans obstacles
+//
+// cellSize: taille d'une cellule dans la grille
+// Retourne une nouvelle grille initialisée
 func NewGrid(cellSize int) *Grid {
 	width := constants.GridWidth / cellSize
 	height := constants.GridHeight / cellSize
@@ -59,6 +65,11 @@ func NewGrid(cellSize int) *Grid {
 	return grid
 }
 
+// NewGridWithObstacles initialise une nouvelle grille avec des obstacles selon la difficulté
+//
+// cellSize: taille d'une cellule dans la grille
+// difficulty: niveau de difficulté pour déterminer le nombre d'obstacles
+// Retourne une nouvelle grille avec obstacles
 func NewGridWithObstacles(cellSize int, difficulty Difficulty) *Grid {
 	width := constants.GridWidth / cellSize
 	height := constants.GridHeight / cellSize
@@ -83,6 +94,7 @@ func NewGridWithObstacles(cellSize int, difficulty Difficulty) *Grid {
 	return grid
 }
 
+// placeFood place aléatoirement la nourriture sur la grille
 func (g *Grid) placeFood() {
 	margin := 1
 
@@ -105,6 +117,9 @@ func (g *Grid) placeFood() {
 	}
 }
 
+// placeObstacles place des obstacles sur la grille en fonction de la difficulté
+//
+// difficulty: niveau de difficulté pour déterminer le nombre d'obstacles
 func (g *Grid) placeObstacles(difficulty Difficulty) {
 	var obstacleCount int
 	switch difficulty {
@@ -134,6 +149,10 @@ func (g *Grid) placeObstacles(difficulty Difficulty) {
 	}
 }
 
+// met à jour la position du serpent, vérifie les collisions et mange la nourriture
+//
+// game: pointeur vers l'état du jeu pour mettre à jour le score et jouer les sons
+// Retourne une erreur en cas de collision avec les murs, le serpent lui-même ou un obstacle
 func (g *Grid) Update(game *Game) error {
 	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) && g.direction != Down {
 		g.nextDirection = Up
@@ -201,6 +220,9 @@ func (g *Grid) Update(game *Game) error {
 	return nil
 }
 
+// Draw dessine la grille de jeu, les bordures, le serpent, la nourriture et les obstacles
+//
+// screen: l'écran sur lequel dessiner
 func (g *Grid) Draw(screen *ebiten.Image) {
 	gridX := (constants.ScreenWidth - constants.GridWidth) / 2
 	gridY := (constants.ScreenHeight - constants.GridHeight) / 2
@@ -212,6 +234,7 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	borderOpts.GeoM.Translate(float64(gridX-constants.BorderThickness), float64(gridY-constants.BorderThickness))
 	screen.DrawImage(borderImage, borderOpts)
 
+	// aire de jeu
 	backgroundColor := color.RGBA{R: 238, G: 242, B: 121, A: 255}
 	gameArea := ebiten.NewImage(constants.GridWidth, constants.GridHeight)
 	gameArea.Fill(backgroundColor)
@@ -219,6 +242,7 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	gameAreaOpts.GeoM.Translate(float64(gridX), float64(gridY))
 	screen.DrawImage(gameArea, gameAreaOpts)
 
+	// le serpent
 	for i, pos := range g.snake {
 		var segmentType string
 		var direction Direction
@@ -283,14 +307,14 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 		screen.DrawImage(snakePart, opts)
 	}
 
-	// Dessiner la pomme
+	// la pomme
 	appleSprite := getAppleSprite()
 	appleOpts := &ebiten.DrawImageOptions{}
 	appleOpts.GeoM.Scale(float64(constants.CellSize)/64, float64(constants.CellSize)/64)
 	appleOpts.GeoM.Translate(float64(gridX+g.food.X*constants.CellSize), float64(gridY+g.food.Y*constants.CellSize))
 	screen.DrawImage(appleSprite, appleOpts)
 
-	// Dessiner les obstacles
+	// les obstacles
 	obstacleSprite := getObstacleSprite()
 	for _, pos := range g.obstacles {
 		opts := &ebiten.DrawImageOptions{}
@@ -300,8 +324,13 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	}
 }
 
+// récupère le segment du sprite correspondant au type et à la direction du segment du serpent
+//
+// segmentType: le type de segment (tête, corps, queue)
+// direction: la direction actuelle du segment
+// nextDirection: la direction du prochain segment pour déterminer les coins
+// Retourne l'image du segment
 func getSpriteSegment(segmentType string, direction Direction, nextDirection Direction) *ebiten.Image {
-	// Les coordonnées des segments de l'image sprite (colonne, ligne)
 	segments := map[string]image.Point{
 		"head_up":    {3, 0},
 		"head_down":  {4, 1},
@@ -375,12 +404,14 @@ func getSpriteSegment(segmentType string, direction Direction, nextDirection Dir
 	return snakeSprite.SubImage(image.Rect(segmentCoords.X*64, segmentCoords.Y*64, (segmentCoords.X+1)*64, (segmentCoords.Y+1)*64)).(*ebiten.Image)
 }
 
+// récupère l'image du sprite de la pomme
 func getAppleSprite() *ebiten.Image {
 	appleCoords := image.Point{X: 0, Y: 3}
 	appleSprite := snakeSprite.SubImage(image.Rect(appleCoords.X*64, appleCoords.Y*64, (appleCoords.X+1)*64, (appleCoords.Y+1)*64)).(*ebiten.Image)
 	return appleSprite
 }
 
+// getObstacleSprite récupère l'image du sprite des obstacles
 func getObstacleSprite() *ebiten.Image {
 	obstacleCoords := image.Point{X: 1, Y: 3}
 	obstacleSprite := snakeSprite.SubImage(image.Rect(obstacleCoords.X*64, obstacleCoords.Y*64, (obstacleCoords.X+1)*64, (obstacleCoords.Y+1)*64)).(*ebiten.Image)

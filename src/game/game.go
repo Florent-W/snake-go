@@ -3,7 +3,6 @@ package game
 import (
 	"image/color"
 	"log"
-	"os"
 	"sort"
 	"strconv"
 	"time"
@@ -15,10 +14,10 @@ import (
 
 	"snake-go/src/audio"
 	"snake-go/src/constants"
-	utils "snake-go/src/input"
 	"snake-go/src/ui"
 )
 
+// Etats dans le jeu, on peut être dans le menu, en train de jouer, en train de choisir le mode de jeu, etc.
 type GameState int
 
 const (
@@ -31,6 +30,7 @@ const (
 	Credits
 )
 
+// Déclaration des niveaux de difficulté
 type Difficulty int
 
 const (
@@ -39,9 +39,9 @@ const (
 	Difficile
 )
 
+// Variables globales
 var (
 	currentSelection Difficulty
-	lastMenuUpdate   time.Time
 	lastEnterPress   time.Time
 	backgroundImage  *ebiten.Image
 	heartImage       *ebiten.Image
@@ -53,20 +53,23 @@ type Score struct {
 	Name  string
 }
 
+// Structure représentant l'état du jeu
 type Game struct {
-	GridManager    GridManager
-	Scores         []Score
-	Score          int
-	State          GameState
-	UpdateCount    int
-	UpdateInterval int
-	ScoreAdded     bool
-	PlayerName     string
-	Difficulty     Difficulty
-	Mode           string
-	Lives          int
+	GridManager       GridManager
+	Scores            []Score
+	Score             int
+	State             GameState
+	UpdateCount       int
+	UpdateInterval    int
+	ScoreAdded        bool
+	PlayerName        string
+	Difficulty        Difficulty
+	Mode              string
+	Lives             int
+	LastSpeedIncrease int
 }
 
+// Initialisation des images nécessaires
 func init() {
 	img, _, err := ebitenutil.NewImageFromFile("assets/menu_background.png")
 	if err != nil {
@@ -87,6 +90,7 @@ func init() {
 	snakeSprite = snakeImg
 }
 
+// Fonction principale de mise à jour du jeu, appel les méthodes selon l'état du jeu
 func (g *Game) Update() error {
 	switch g.State {
 	case Menu:
@@ -107,76 +111,17 @@ func (g *Game) Update() error {
 	return nil
 }
 
-func (g *Game) updateMenu() error {
-	if ebiten.IsKeyPressed(ebiten.Key1) {
-		g.State = NameInput
-	}
-	if ebiten.IsKeyPressed(ebiten.Key2) {
-		g.State = Credits
-	}
-	if ebiten.IsKeyPressed(ebiten.Key3) {
-		os.Exit(0)
-	}
-	return nil
-}
-
-func (g *Game) updateNameInput() error {
-	if ebiten.IsKeyPressed(ebiten.KeyEnter) && len(g.PlayerName) > 0 {
-		if time.Since(lastEnterPress) > 500*time.Millisecond {
-			g.State = ModeSelection
-			lastEnterPress = time.Now()
-		}
-	}
-	utils.HandleNameInput(&g.PlayerName)
-	return nil
-}
-
-func (g *Game) updateModeSelection() error {
-	if ebiten.IsKeyPressed(ebiten.Key1) {
-		g.Mode = "Classique"
-		g.State = DifficultySelection
-	}
-	if ebiten.IsKeyPressed(ebiten.Key2) {
-		g.Mode = "Challenge"
-		g.State = DifficultySelection
-	}
-	return nil
-}
-
-func (g *Game) updateDifficultySelection() error {
-	if time.Since(lastMenuUpdate) > 200*time.Millisecond {
-		if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-			if currentSelection > Facile {
-				currentSelection--
-			}
-			lastMenuUpdate = time.Now()
-		}
-		if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-			if currentSelection < Difficile {
-				currentSelection++
-			}
-			lastMenuUpdate = time.Now()
-		}
-		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
-			if time.Since(lastEnterPress) > 500*time.Millisecond {
-				g.State = Playing
-				g.Difficulty = currentSelection
-				g.startGame()
-				lastEnterPress = time.Now()
-				audio.BackgroundPlayer.Rewind()
-				audio.BackgroundPlayer.Play()
-			}
-		}
-	}
-	return nil
-}
-
+// Mise à jour de l'état de jeu pendant la partie
 func (g *Game) updatePlaying() error {
 	g.UpdateCount++
 	if g.UpdateCount >= g.UpdateInterval {
+		if g.Score > 0 && g.Score%5 == 0 && g.Score != g.LastSpeedIncrease { // Ma vitesse sera augmentée à chaque fois que 5 pommes sont mangées
+			g.UpdateInterval = max(3, g.UpdateInterval-1) // Réduire l'intervalle de mise à jour mais pas en dessous de 3
+			g.LastSpeedIncrease = g.Score                 // Permet d'enregistrer le score où la vitesse a été augmentée comme ça on ne l'augmente qu'une seule fois par 5 points
+		}
 		err := g.GridManager.Update(g)
 		if err != nil {
-			if g.Lives > 1 {
+			if g.Lives > 1 { // Si on a plus d'une vie (dans le mode challenge), on perd une vie et on recommence tout en gardant le score
 				g.Lives--
 				g.GridManager = NewGridWithObstacles(constants.CellSize, g.Difficulty)
 			} else {
@@ -191,6 +136,7 @@ func (g *Game) updatePlaying() error {
 	return nil
 }
 
+// Mise à jour de l'état de jeu lors du game over
 func (g *Game) updateGameOver() error {
 	if !g.ScoreAdded {
 		g.AddScore(g.Score, g.PlayerName)
@@ -203,7 +149,7 @@ func (g *Game) updateGameOver() error {
 		audio.BackgroundPlayer.Play()
 	} else if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 		if time.Since(lastEnterPress) > 500*time.Millisecond {
-			g.State = Menu
+			g.State = Menu // Retourau menu
 			lastEnterPress = time.Now()
 			audio.BackgroundPlayer.Rewind()
 			audio.BackgroundPlayer.Play()
@@ -212,6 +158,7 @@ func (g *Game) updateGameOver() error {
 	return nil
 }
 
+// Mise à jour de l'état de jeu lors des crédits, ça permet de revenir au menu principal
 func (g *Game) updateCredits() error {
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		g.State = Menu
@@ -221,39 +168,45 @@ func (g *Game) updateCredits() error {
 	return nil
 }
 
+// Initialisation des paramètres de jeu selon la difficulté choisie
+// Dans le mode classique, on a une seule vie qu'importe la difficulté
+// Dans le mode challenge, on a 3 vies en facile, 2 en normal et 1 en difficile, la vitesse de départ change et il y a des obstacles en mode challenge qui diffèrennt selon la difficulté ainsi que plus de vies
 func (g *Game) startGame() {
 	switch g.Difficulty {
 	case Facile:
-		g.UpdateInterval = 15
+		g.UpdateInterval = 15 // Le serpent bouge lentement au début
+		g.Lives = 1
 		if g.Mode == "Challenge" {
 			g.Lives = 3
 		}
 	case Normal:
 		g.UpdateInterval = 10
+		g.Lives = 1
 		if g.Mode == "Challenge" {
-			g.Lives = 2
+			g.Lives = 2 // Mode challenge : 2 vies
 		}
 	case Difficile:
 		g.UpdateInterval = 5
-		if g.Mode == "Challenge" {
-			g.Lives = 1
-		}
+		g.Lives = 1
 	}
 
+	// Initialisation de la grille en fonction du mode de jeu pour savoir si il y a des obstacles ou non
 	if g.Mode == "Challenge" {
 		g.GridManager = NewGridWithObstacles(constants.CellSize, g.Difficulty)
 	} else {
 		g.GridManager = NewGrid(constants.CellSize)
-		g.Lives = 1
 	}
 
+	// Réinitialisation des autres paramètres de jeu
 	g.Score = 0
 	g.State = Playing
 	g.UpdateCount = 0
+	g.LastSpeedIncrease = 0
 	audio.BackgroundPlayer.Rewind()
 	audio.BackgroundPlayer.Play()
 }
 
+// Ajout d'un nouveau score à la liste des scores
 func (g *Game) AddScore(newScore int, newName string) {
 	g.Scores = append(g.Scores, Score{Value: newScore, Name: newName})
 
@@ -266,6 +219,7 @@ func (g *Game) AddScore(newScore int, newName string) {
 	}
 }
 
+// Dessin des éléments à l'écran selon l'état du jeu
 func (g *Game) Draw(screen *ebiten.Image) {
 	if backgroundImage != nil {
 		opts := &ebiten.DrawImageOptions{}
@@ -297,6 +251,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return constants.ScreenWidth, constants.ScreenHeight
 }
 
+// Dessin des vies restantes à l'écran
 func (g *Game) drawLives(screen *ebiten.Image) {
 	if heartImage == nil {
 		return
@@ -315,6 +270,7 @@ func (g *Game) drawLives(screen *ebiten.Image) {
 	}
 }
 
+// Conversion des scores pour affichage
 func convertScores(scores []Score) []ui.Score {
 	converted := make([]ui.Score, len(scores))
 	for i, score := range scores {

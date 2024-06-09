@@ -1,4 +1,4 @@
-package utils
+package input
 
 import (
 	"unicode"
@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// gère la saisie du nom du joueur
 func HandleNameInput(playerName *string) {
 	for _, r := range ebiten.InputChars() {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
