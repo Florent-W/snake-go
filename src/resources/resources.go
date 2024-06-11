@@ -12,6 +12,8 @@ var (
 	BackgroundImage *ebiten.Image
 	HeartImage      *ebiten.Image
 	SnakeSprite     *ebiten.Image
+	RKeyImage	   *ebiten.Image
+	EnterKeyImage  *ebiten.Image
 )
 
 func init() {
@@ -31,4 +33,15 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	RKeyImage, _, err = ebitenutil.NewImageFromFile("assets/press-r.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	EnterKeyImage, _, err = ebitenutil.NewImageFromFile("assets/press-enter.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
