@@ -103,13 +103,14 @@ func (g *Grid) placeFood() {
 	foodY := rand.Intn(g.height-2*margin) + margin
 	g.food = Position{X: foodX, Y: foodY}
 
+	// vérifier que la nourriture n'est pas placée sur le serpent
 	for _, pos := range g.snake {
 		if pos == g.food {
 			g.placeFood()
 			return
 		}
 	}
-
+	// vérifier que la nourriture n'est pas placée sur un obstacle
 	for _, pos := range g.obstacles {
 		if pos == g.food {
 			g.placeFood()
@@ -190,12 +191,14 @@ func (g *Grid) Update(game *Game) error {
 		newHead.X++
 	}
 
+	// vérifier les collisions avec les murs
 	if newHead.X < 0 || newHead.X >= g.width || newHead.Y < 0 || newHead.Y >= g.height {
 		audio.LoseSoundPlayer.Rewind()
 		audio.LoseSoundPlayer.Play()
 		return fmt.Errorf("game over: collision avec un mur")
 	}
 
+	// vérifier collision avec le serpent
 	for _, segment := range g.snake[1:] {
 		if newHead == segment {
 			audio.LoseSoundPlayer.Rewind()
@@ -204,6 +207,7 @@ func (g *Grid) Update(game *Game) error {
 		}
 	}
 
+	// vérifier collision avec les obstacles
 	for _, obstacle := range g.obstacles {
 		if newHead == obstacle {
 			audio.LoseSoundPlayer.Rewind()
@@ -212,6 +216,7 @@ func (g *Grid) Update(game *Game) error {
 		}
 	}
 
+	// manger la nourriture
 	if newHead == g.food {
 		game.Score++
 		audio.EatSoundPlayer.Rewind()
@@ -252,6 +257,7 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 		var direction Direction
 		var nextDirection Direction
 
+		// déterminer le type de segment (tête, corps, queue) et les directions
 		if i == 0 {
 			segmentType = "head"
 			direction = g.direction

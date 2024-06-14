@@ -223,7 +223,7 @@ func RenderCredits(screen *ebiten.Image) {
 	fontFace := basicfont.Face7x13
 
 	text.Draw(screen, "Credits", fontFace, constants.ScreenWidth/2-50, constants.ScreenHeight/2-100, textColor)
-	text.Draw(screen, "Developpe par Florent Weltmann, Dantin Durand, William Girard-Reydet", fontFace, constants.ScreenWidth/2-50, constants.ScreenHeight/2-50, textColor)
+	text.Draw(screen, "Developpe par Florent Weltmann, Dantin Durand", fontFace, constants.ScreenWidth/2-50, constants.ScreenHeight/2-50, textColor)
 	text.Draw(screen, "Appuyez sur Echap pour revenir au menu", fontFace, constants.ScreenWidth/2-50, constants.ScreenHeight/2, textColor)
 }
 
